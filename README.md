@@ -20,7 +20,7 @@ This repo provides:
 
 ## Quickstart
 
-Prereqs: Docker Desktop + Python 3.10+.
+Prereqs: Docker Desktop + [uv](https://github.com/astral-sh/uv).
 
 ### 1) Configure environment
 
@@ -40,7 +40,8 @@ docker compose up -d
 Autonomous heartbeats are **gated** until setup is complete:
 
 ```bash
-./agi init  # or `agi init` if you've installed the package
+uv run agi init
+# or `./agi init` if you prefer the script directly
 
 # If you want autonomy:
 docker compose --profile active up -d
@@ -50,19 +51,20 @@ Config is stored in Postgres in the `config` table (e.g. `agent.objectives`, `ag
 
 ### 4) Use the Python client (thin DB client)
 
-Install:
+Install dependencies:
 
 ```bash
-pip install -e .
+uv sync
 ```
 
-Example:
+Example (`example.py`):
 
 ```python
 import asyncio
 from cognitive_memory_api import CognitiveMemory, MemoryType
 
 DSN = "postgresql://agi_user:agi_password@localhost:5432/agi_db"
+
 
 async def main():
     async with CognitiveMemory.connect(DSN) as mem:
@@ -106,7 +108,7 @@ async with CognitiveMemory.connect(DSN) as mem:
 Expose memory operations as MCP tools so any MCP-capable runtime can call them.
 
 ```bash
-agi mcp
+uv run agi mcp
 ```
 
 Conceptual flow:

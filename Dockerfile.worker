@@ -5,9 +5,24 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-COPY pyproject.toml README.md /app/
-COPY agi_cli.py agi_init.py agi_mcp_server.py conversation.py ingest.py memory_tools.py worker.py cognitive_memory_api.py /app/
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-RUN pip install --no-cache-dir .
+# Copy dependency files first for caching
+COPY pyproject.toml uv.lock README.md /app/
+
+# Install dependencies
+RUN uv sync --frozen --no-install-project
+
+# Copy project files
+COPY agi_cli.py agi_init.py agi_mcp_server.py conversation.py ingest.py memory_tools.py worker.py cognitive_memory_api.py prompt_resources.py /app/
+# Also copy prompts directory as it might be needed
+COPY prompts /app/prompts
+
+# Install the project itself
+RUN uv sync --frozen
+
+# Place the virtualenv in PATH
+ENV PATH="/app/.venv/bin:$PATH"
 
 CMD ["agi-worker"]
